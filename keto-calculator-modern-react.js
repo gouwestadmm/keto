@@ -577,37 +577,35 @@ const InputSlider = (props) => {
   );
 };
 
-class InputFormNumberField extends React.Component {
-  update(event) {
+const InputFormNumberField = (props) => {
+  function update(event) {
     try {
       var newValue = parseFloat(event.target.value);
-      this.props.updateValue(newValue);
+      props.updateValue(newValue);
     } catch (ex) {
       console.error(ex);
     }
   }
 
-  toNumber(value) {
+  function toNumber(value) {
     return isNaN(value) || value === undefined ? 0 : value;
   }
 
-  render() {
-    return (
-      <div>
-        <label for={this.props.fieldId}>{this.props.title}</label>
-        <TextField
-          type="text"
-          variant="outlined"
-          name={this.props.fieldId}
-          label={this.props.title}
-          helperText={this.props.helper}
-          value={this.toNumber(this.props.value)}
-          onChange={this.update.bind(this)}
-        />
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <label for={props.fieldId}>{props.title}</label>
+      <TextField
+        type="text"
+        variant="outlined"
+        name={props.fieldId}
+        label={props.title}
+        helperText={props.helper}
+        value={toNumber(props.value)}
+        onChange={update}
+      />
+    </div>
+  );
+};
 
 class Results extends React.Component {
   render() {
