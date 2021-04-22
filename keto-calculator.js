@@ -1,3 +1,48 @@
+const {
+  colors,
+  CssBaseline,
+  ThemeProvider,
+  Typography,
+  Container,
+  makeStyles,
+  createMuiTheme,
+  Box,
+  SvgIcon,
+  Link,
+  Input,
+  FormControl,
+  Radio,
+  RadioGroup,
+  FormLabel,
+  TextField,
+  Table,
+  TableBody,
+  TableContainer,
+  TableRow,
+  TableHead,
+  Tablecell,
+  Grid,
+  Slider,
+} = MaterialUI;
+
+// Create a theme instance.
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: "#ff8038",
+    },
+    secondary: {
+      main: "#ff8038",
+    },
+    error: {
+      main: colors.red.A400,
+    },
+    background: {
+      default: "#fff",
+    },
+  },
+});
+
 // Keto
 
 var Gender = {
@@ -214,7 +259,7 @@ class KetoDietBuddy {
   // The main KetoDietBuddy function: calculate macronutrient ratios for maintenance, minimum & desirable
   // levels. The adjustment factor determines the desirable calorie deficit or surplus. A positive value of 5
   // will result in 5% calorie surplus for weight/ muscle gain where a negative -5% will result in a 5% calorie
-  // deficit for weight/ fat loss.
+  // deficit for weight/ fat loss
   //
   // The resulting data is a collection of macronutrient ratios as calculated by calculateMacronutrientRatio.
   //
@@ -312,7 +357,7 @@ class App extends React.Component {
         weight: 66,
         bodyfat: 26,
         height: 160,
-        activityLevel: 0.5,
+        activityLevel: 0,
         netCarbs: 30,
       },
       others: {
@@ -347,14 +392,13 @@ class App extends React.Component {
 
     return (
       <div>
-        <h2>Try it for yourself - enter your own data</h2>
         <InputForm
           params={this.state.params}
           others={this.state.others}
           updateParams={this.updateParams.bind(this)}
           updateOthers={this.updateOthers.bind(this)}
         />
-        <h3>Results</h3>
+        <h3>Resultaten</h3>
         <Results params={this.state.params} others={this.state.others} />
       </div>
     );
@@ -406,37 +450,42 @@ class InputForm extends React.Component {
         />
         <InputFormNumberField
           fieldId="age"
-          title="Age"
+          title="Leeftijd"
           value={this.props.params.age}
           updateValue={this.updateAge.bind(this)}
         />
         <InputFormNumberField
           fieldId="weight"
-          title="Weight (Kg)"
+          title="Gewicht (Kg)"
+          helper="Vul je gewicht in kilogram in"
           value={this.props.params.weight}
           updateValue={this.updateWeight.bind(this)}
         />
         <InputFormNumberField
           fieldId="bodyfat"
-          title="Body Fat (%)"
+          title="Vetpercentage (%)"
           value={this.props.params.bodyfat}
           updateValue={this.updateBodyfat.bind(this)}
         />
         <InputFormNumberField
           fieldId="height"
-          title="Height (cm)"
+          title="Lengte (cm)"
           value={this.props.params.height}
           updateValue={this.updateHeight.bind(this)}
         />
         <InputFormNumberField
           fieldId="activityLevel"
-          title="Activity Level (0 - 1)"
+          title="Hoe actief ben je (0 - 1)"
           value={this.props.params.activityLevel}
           updateValue={this.updateActivityLevel.bind(this)}
         />
+        <InputSlider
+          value={this.props.params.activityLevel}
+          updateValue={this.updateActivityLevel.bind(this)}
+        ></InputSlider>
         <InputFormNumberField
           fieldId="netCarbs"
-          title="Net Carbs Limit (g)"
+          title="Netto Koolhydraten(g)"
           value={this.props.params.netCarbs}
           updateValue={this.updateNetCarbs.bind(this)}
         />
@@ -468,24 +517,64 @@ class InputFormGenderField extends React.Component {
 
     return (
       <div>
-        <input
+        <Radio
           type="radio"
           name={idFemale}
           value={Gender.FEMALE}
           checked={this.props.value === Gender.FEMALE}
           onChange={this.update.bind(this)}
+          label="Vrouw"
         />
-        <label for={idFemale}>Female</label>
+        <label for={idFemale}>Vrouw</label>
 
-        <input
+        <Radio
           type="radio"
           name={idMale}
           value={Gender.MALE}
           checked={this.props.value === Gender.MALE}
           onChange={this.update.bind(this)}
         />
-        <label for={idMale}>Male</label>
+        <label for={idMale}>Man</label>
       </div>
+    );
+  }
+}
+
+class InputSlider extends React.Component {
+  update(event) {
+    try {
+      var newValue = parseFloat(event.target.value);
+      this.props.updateValue(newValue);
+    } catch (ex) {
+      console.error(ex);
+    }
+  }
+
+  toNumber(value) {
+    return isNaN(value) || value === undefined ? 0 : value;
+  }
+
+  render() {
+    return (
+      <Grid container spacing={2}>
+        <Grid item>
+          <p>1</p>
+        </Grid>
+        <Grid item xs>
+          <Slider
+            min={0}
+            max={1}
+            steps={0.1}
+            name={this.props.fieldId}
+            value={this.toNumber(this.props.value)}
+            onChange={this.update.bind(this)}
+            aria-labelledby="continuous-slider"
+          />
+        </Grid>
+        <Grid item>
+          <p>10</p>
+        </Grid>
+      </Grid>
     );
   }
 }
@@ -508,9 +597,12 @@ class InputFormNumberField extends React.Component {
     return (
       <div>
         <label for={this.props.fieldId}>{this.props.title}</label>
-        <input
+        <TextField
           type="text"
+          variant="outlined"
           name={this.props.fieldId}
+          label={this.props.title}
+          helperText={this.props.helper}
           value={this.toNumber(this.props.value)}
           onChange={this.update.bind(this)}
         />
@@ -534,20 +626,19 @@ class Results extends React.Component {
           : result.adjustment + "% surplus";
       var warnings = "";
       if ((result.warnings & Warnings.LOW_BODYFAT) == Warnings.LOW_BODYFAT) {
-        warnings += "Bodyfat too low, ";
+        warnings += "Vetpercentage te laag, ";
       }
       if ((result.warnings & Warnings.LOW_CALORIES) == Warnings.LOW_CALORIES) {
-        warnings += "Calorie intake too low, ";
+        warnings += "Calorie inname te laag, ";
       }
       if ((result.warnings & Warnings.LOW_FATGRAMS) == Warnings.LOW_FATGRAMS) {
-        warnings += "Fat intake too low, ";
+        warnings += "Vet inname te laag, ";
       }
       if ((result.warnings & Warnings.HIGH_CARBS) == Warnings.HIGH_CARBS) {
-        warnings += "Carb intake too high, ";
+        warnings += "Koolhydraatinname te hoog, ";
       }
-
       if (warnings.length == 0) {
-        warnings = "none -- all good";
+        warnings = "Geen fouten -- helemaal goed";
       }
 
       return (
@@ -608,8 +699,8 @@ class ResultsSection extends React.Component {
       "%";
 
     return (
-      <table>
-        <tbody>
+      <Table>
+        <TableBody>
           <ResultsSectionItem name="Energy" value={energy} />
           <ResultsSectionItem
             name="Fat/ Protein/ Net Carbs grams"
@@ -623,8 +714,8 @@ class ResultsSection extends React.Component {
             name="Fat/ Protein/ Net Carbs %"
             value={macroPercEnergy}
           />
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     );
   }
 }
@@ -640,4 +731,11 @@ class ResultsSectionItem extends React.Component {
   }
 }
 
-ReactDOM.render(<App />, document.querySelector("#keto-calculator"));
+ReactDOM.render(
+  <ThemeProvider theme={theme}>
+    {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+    <CssBaseline />
+    <App />
+  </ThemeProvider>,
+  document.querySelector("#keto-calculator")
+);
