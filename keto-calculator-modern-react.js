@@ -346,25 +346,34 @@ class KetoDietBuddy {
 // Exports
 //
 
-class App extends React.Component {
-  constructor() {
-    super();
+const Keto = () => {
+  const [gender, setGender] = React.useState("");
+  const [age, setAge] = React.useState("");
+  const [weight, setWeight] = React.useState("");
+  const [bodyfat, setBodyfat] = React.useState("");
+  const [height, setHeight] = React.useState("");
+  const [activityLevel, setActivityLevel] = React.useState("");
+  const [netCarbs, setNetCarbs] = React.useState("");
+  const [calorieAdjustment, setCalorieAdjustment] = React.useState("");
+};
 
-    this.state = {
-      params: {
-        gender: Gender.FEMALE,
-        age: 35,
-        weight: 66,
-        bodyfat: 26,
-        height: 160,
-        activityLevel: 0,
-        netCarbs: 30,
-      },
-      others: {
-        calorieAdjustment: -10,
-      },
-    };
-  }
+class App extends React.Component {
+  state = {
+    params: {
+      gender: Gender.FEMALE,
+      age: 35,
+      weight: 66,
+      bodyfat: 26,
+      height: 160,
+      activityLevel: 0,
+      netCarbs: 30,
+    },
+    others: {
+      calorieAdjustment: -10,
+    },
+  };
+
+  // Set UseStates
 
   updateParams(newValue) {
     this.setState({ params: newValue });
@@ -541,44 +550,32 @@ class InputFormGenderField extends React.Component {
 }
 
 const InputSlider = (props) => {
-  update(event) {
-    try {
-      var newValue = parseFloat(event.target.value);
-      this.props.updateValue(newValue);
-    } catch (ex) {
-      console.error(ex);
-    }
-  }
-
-  toNumber(value) {
+  function toNumber(value) {
     return isNaN(value) || value === undefined ? 0 : value;
   }
 
-  render() {
-    return (
-      <Grid container spacing={2}>
-        <Grid item>
-          <p>1</p>
-        </Grid>
-        <Grid item xs>
-          <Slider
-            min={0}
-            max={1}
-            steps={0.1}
-            defaultValue={0}
-            name={props.fieldId}
-            value={toNumber(props.value)}
-            onChange={update.bind()}
-            aria-labelledby="continuous-slider"
-          />
-        </Grid>
-        <Grid item>
-          <p>10</p>
-        </Grid>
+  return (
+    <Grid container spacing={2}>
+      <Grid item>
+        <p>1</p>
       </Grid>
-    );
-  }
-}}
+      <Grid item xs>
+        <Slider
+          min={0}
+          max={1}
+          steps={0.1}
+          defaultValue={0}
+          name={props.fieldId}
+          value={toNumber(props.value)}
+          aria-labelledby="continuous-slider"
+        />
+      </Grid>
+      <Grid item>
+        <p>10</p>
+      </Grid>
+    </Grid>
+  );
+};
 
 class InputFormNumberField extends React.Component {
   update(event) {
