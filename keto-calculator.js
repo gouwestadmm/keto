@@ -570,8 +570,6 @@ class Results extends React.Component {
           <ResultsSection result={result.maintenance} />
           <h4>Desirable</h4>
           <ResultsSection result={result.desirable} />
-          <h4>Raw Results Object</h4>
-          <textarea readOnly cols="64" rows="40" value={textResult} />
         </div>
       );
     } catch (ex) {
