@@ -95,6 +95,7 @@ const calculateMacronutrientRatio = (fatGrams, proteinGrams, netCarbGrams) => {
   result.percEnergyFat = Math.round(
     100 - (result.percEnergyNetCarbs + result.percEnergyProtein)
   );
+  return result;
 };
 
 //
@@ -117,7 +118,7 @@ const App = () => {
   const [bmr, setBmr] = React.useState(1745);
   const [warnings, setWarnings] = React.useState(0);
   // result objects
-  const [minimum, setMinimum] = React.useState(null);
+  const [minimum, setMinimum] = React.useState();
   const [maintenance, setMaintenance] = React.useState();
   const [desirable, setDesirable] = React.useState();
 
@@ -125,7 +126,6 @@ const App = () => {
   // set useffect for updating results state
   //
   React.useEffect(() => {
-    console.log("window loaded");
     // get the results
     const resultMaintenance = calculateMacronutrientRatio(
       maxFatInGrams,
@@ -145,7 +145,7 @@ const App = () => {
     setMinimum(resultMinimum);
     setMaintenance(resultMaintenance);
     setDesirable(resultDesirable);
-  }, [gender, age, weight]);
+  }, [age, weight]);
   //
   //
 
@@ -375,7 +375,6 @@ const App = () => {
       <Results
         calorieAdjustment={100}
         minimum={minimum}
-        maintenance={maintenance}
         desirable={desirable}
       />
     </div>
@@ -400,18 +399,17 @@ const Results = ({
           {/* <ResultsSectionItem name="Warnings" value={warnings} /> */}
         </tbody>
       </table>
-      <h4>Calculated Basal Metabolic Rate (BMR): {Math.round(bmr)} kcal</h4>
-      <ResultsSection resultaten={minimum} />
+      <h4>Calculated Basal Metabolic Rate (BMR): {Math.round(bmr)} kcal </h4>
+      <ResultsSection {...minimum} />
       <h4>Maintenance</h4>
-      <ResultsSection resultaten={maintenance} />
+      <ResultsSection {...maintenance} />
       <h4>Desirable</h4>
-      <ResultsSection resultaten={desirable} />
+      <ResultsSection {...desirable} />
     </div>
   );
 };
 
-const ResultsSection = ({resultaten}) => {
-  console.log(resultaten);
+const ResultsSection = (resultaten) => {
   const energy = resultaten.energy + " kcal";
   var macroGrams =
     resultaten.gramsFat +
