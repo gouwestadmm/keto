@@ -11,6 +11,7 @@ const {
   Link,
   Input,
   FormControl,
+  FormControlLabel,
   Radio,
   RadioGroup,
   FormLabel,
@@ -107,7 +108,7 @@ const calculateMacronutrientRatio = (fatGrams, proteinGrams, netCarbGrams) => {
 //
 
 const App = () => {
-  const [gender, setGender] = React.useState("MALE");
+  const [gender, setGender] = React.useState("Male");
   const [age, setAge] = React.useState(35);
   const [weight, setWeight] = React.useState(80);
   const [bodyfat, setBodyfat] = React.useState(20);
@@ -145,33 +146,37 @@ const App = () => {
     setMinimum(resultMinimum);
     setMaintenance(resultMaintenance);
     setDesirable(resultDesirable);
-  }, [age, weight]);
+  }, [age, weight, height, bodyfat, activityLevel, netCarbs, bmr]);
   //
   //
 
   //
-  // Set base values per gender
-  //
-  switch (gender) {
-    default:
-    case "FEMALE":
-      //
-      // female: 9.99 x weight (kg) + 6.25 x height (cm) - 4.92 x age (y) - 161
-      //
-      React.useEffect(() => {
+  // UDPATE VALUES BASED ON GENDER SELECT
+
+  React.useEffect(() => {
+    //
+    // Set base values per gender
+    //
+    switch (gender) {
+      default:
+      case "Female":
+        //
+        // female: 9.99 x weight (kg) + 6.25 x height (cm) - 4.92 x age (y) - 161
+        //
         setBmr(9.99 * weight + 6.25 * height - 4.92 * age - 161);
-      }, [gender]);
+        console.log(bmr);
 
-      break;
-    case "MALE":
-      //
-      // male:    9.99 x weight (kg) + 6.25 x height (cm) - 4.92 x age (y) + 5
-      //
-      React.useEffect(() => {
+        break;
+      case "Male":
+        //
+        // male:    9.99 x weight (kg) + 6.25 x height (cm) - 4.92 x age (y) + 5
+        //
         setBmr(9.99 * weight + 6.25 * height - 4.92 * age + 5);
-      }, [gender]);
-      break;
-  }
+        console.log(bmr);
+
+        break;
+    }
+  }, [gender]);
 
   //
   // Calculate Protein Level for given activity level
@@ -241,13 +246,13 @@ const App = () => {
 
   switch (gender) {
     default:
-    case "FEMALE":
+    case "Female":
       //
       // Source: wikipedia: 8% - 12%
       //
       var essentialBodyFat = 8;
       break;
-    case "MALE":
+    case "Male":
       //
       // wikipedia: 3% - 5%
       //
@@ -359,15 +364,53 @@ const App = () => {
       break;
   }
 
+  const handleGenderChange = (event) => {
+    setGender(event.target.value);
+    console.log(gender);
+  };
+
   return (
     <div>
       <form>
+        <FormControl component="fieldset">
+          <FormLabel component="legend">Gender</FormLabel>
+          <RadioGroup
+            aria-label="gender"
+            name="gender1"
+            value={gender}
+            onChange={handleGenderChange}
+          >
+            <FormControlLabel
+              value="Female"
+              control={<Radio />}
+              label="Vrouw"
+            />
+            <FormControlLabel value="Male" control={<Radio />} label="Man" />
+          </RadioGroup>
+        </FormControl>
         <TextField
+          label="Leeftijd"
           value={age}
           onChange={(e) => setAge(e.target.value)}
         ></TextField>
         <TextField
+          label="gewicht"
           value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+        ></TextField>
+        <TextField
+          label="lengte"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+        ></TextField>
+        <TextField
+          label="vetpercentage"
+          value={bodyfat}
+          onChange={(e) => setBodyfat(e.target.value)}
+        ></TextField>
+        <TextField
+          label="hoeveelheid koolhydraten"
+          value={netCarbs}
           onChange={(e) => setWeight(e.target.value)}
         ></TextField>
       </form>
@@ -376,6 +419,7 @@ const App = () => {
         calorieAdjustment={100}
         minimum={minimum}
         desirable={desirable}
+        maintenance={maintenance}
       />
     </div>
   );
