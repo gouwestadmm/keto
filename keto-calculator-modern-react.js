@@ -44,31 +44,108 @@ const theme = createMuiTheme({
   },
 });
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+  },
+  textField: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    width: "25ch",
+  },
+}));
+
 // Keto Core
 
-const Warnings = {
-  //
-  // Essential bodyfat is too low
-  //
-  LOW_BODYFAT: 1 << 0,
+const errorHandling = (
+  bodyfat,
+  essentialBodyFat,
+  minimumFoodIntake,
+  maintenanceCalorieIntake,
+  maxFatInGrams,
+  desirableFatInGrams,
+  desirableFoodIntake,
+  warnings,
+  setWarnings
+) => {
+  const Warnings = {
+    //
+    // Essential bodyfat is too low
+    //
+    LOW_BODYFAT: 1 << 0,
 
-  //
-  // Fat intake (in grams) required to meet desirable level is too low (less then 30g)
-  //
-  LOW_FATGRAMS: 1 << 1,
+    //
+    // Fat intake (in grams) required to meet desirable level is too low (less then 30g)
+    //
+    LOW_FATGRAMS: 1 << 1,
 
-  //
-  // Calories required to meet desirable level are way too low (less than 1200 kcal)
-  //
-  LOW_CALORIES: 1 << 2,
+    //
+    // Calories required to meet desirable level are way too low (less than 1200 kcal)
+    //
+    LOW_CALORIES: 1 << 2,
 
-  //
-  // Net Carbs limit set too high making it impossible to meet desirable targets
-  //
-  HIGH_CARBS: 1 << 3,
+    //
+    // Net Carbs limit set too high making it impossible to meet desirable targets
+    //
+    HIGH_CARBS: 1 << 3,
+  };
+
+  // Body Fat too low
+
+  let nonEssentialBodyFat = bodyfat - essentialBodyFat;
+
+  if (nonEssentialBodyFat < 0) {
+    nonEssentialBodyFat = 0;
+    var bodyFatTooLow = true;
+  } else {
+    var bodyFatTooLow = false;
+  }
+
+  if (bodyFatTooLow) {
+    setWarnings("LOW_BODYFAT");
+  } else if (minimumFoodIntake >= maintenanceCalorieIntake) {
+    setWarnings("HIGH_CARBS");
+  }
+
+  // Max fat in grams
+  if (maxFatInGrams < 0) {
+    maxFatInGrams = 0;
+    setWarnings("HIGH_CARBS");
+  }
+
+  if (desirableFatInGrams < 0) {
+    desirableFatInGrams = 0;
+    setWarnings("HIGH_CARBS");
+  }
+
+  //   if (desirable.gramsFat < 30) {
+  //     setWarnings("LOW_FATGRAMS");
+  //   }
+
+  if (desirableFoodIntake < 1200) {
+    setWarnings("LOW_CALORIES");
+  }
+
+  // Set warnings
+  switch (warnings) {
+    default:
+    case "LOW_BODYFAT":
+      console.log("Vetpercentage te laag");
+      break;
+    case "LOW_CALORIES":
+      console.log("Calorie inname te laag");
+      break;
+    case "LOW_FATGRAMS":
+      console.log("Vet inname te laag");
+      break;
+    case "HIGH_CARBS":
+      console.log("Koolhydraatinname te hoog");
+      break;
+  }
 };
-
-const errorHandling = () => {};
+//
+//
 
 //
 // Calculate macronutrient ratios in grams, calories and percentages based on fat, protein & carbs
@@ -104,10 +181,12 @@ const calculateMacronutrientRatio = (fatGrams, proteinGrams, netCarbGrams) => {
 //
 
 //
-// Core functions
+// APP
 //
 
 const App = () => {
+  const classes = useStyles();
+  // SET VARIABLES
   const [gender, setGender] = React.useState("Male");
   const [age, setAge] = React.useState(35);
   const [weight, setWeight] = React.useState(80);
@@ -115,16 +194,17 @@ const App = () => {
   const [height, setHeight] = React.useState(180);
   const [activityLevel, setActivityLevel] = React.useState(1);
   const [netCarbs, setNetCarbs] = React.useState(30);
-  let [calorieAdjustment, setCalorieAdjustment] = React.useState(-15);
+  const [calorieAdjustment, setCalorieAdjustment] = React.useState(-15);
   const [bmr, setBmr] = React.useState(1745);
   const [warnings, setWarnings] = React.useState(0);
-  // result objects
+  //
+  // DEFINE RESULT OBJECTS
   const [minimum, setMinimum] = React.useState();
   const [maintenance, setMaintenance] = React.useState();
   const [desirable, setDesirable] = React.useState();
 
   //
-  // set useffect for updating results state
+  // GENERAL USEEFFECT FOR UPDATING FORM FIELDS
   //
   React.useEffect(() => {
     // get the results
@@ -146,16 +226,28 @@ const App = () => {
     setMinimum(resultMinimum);
     setMaintenance(resultMaintenance);
     setDesirable(resultDesirable);
+    errorHandling(
+      bodyfat,
+      essentialBodyFat,
+      minimumFoodIntake,
+      maintenanceCalorieIntake,
+      maxFatInGrams,
+      desirableFatInGrams,
+      desirableFoodIntake,
+      warnings,
+      setWarnings
+    );
   }, [age, weight, height, bodyfat, activityLevel, netCarbs, bmr]);
   //
   //
 
   //
-  // UDPATE VALUES BASED ON GENDER SELECT
+  // UDPATE BMR VALUE BASED ON RELEVANT FIELDS
+  //
 
-  React.useEffect(() => {
+  const genderBmr = (gender) => {
     //
-    // Set base values per gender
+    // Set bmr values per gender
     //
     switch (gender) {
       default:
@@ -176,7 +268,13 @@ const App = () => {
 
         break;
     }
-  }, [gender]);
+  };
+
+  React.useEffect(() => {
+    genderBmr(gender);
+  }, [gender, height, weight, age]);
+  //
+  //
 
   //
   // Calculate Protein Level for given activity level
@@ -239,7 +337,7 @@ const App = () => {
   };
 
   //
-
+  let nonEssentialBodyFat = bodyfat - essentialBodyFat;
   //
   // Calculate essential and non-essential bodyfat
   //
@@ -259,15 +357,6 @@ const App = () => {
       var essentialBodyFat = 3;
       break;
   }
-
-  let nonEssentialBodyFat = bodyfat - essentialBodyFat;
-  if (nonEssentialBodyFat < 0) {
-    nonEssentialBodyFat = 0;
-    var bodyFatTooLow = true;
-  } else {
-    var bodyFatTooLow = false;
-  }
-
   //
   //
 
@@ -282,12 +371,6 @@ const App = () => {
   const adjustment = calorieAdjustment;
   //result.adjustment = calorieAdjustment;
 
-  if (bodyFatTooLow) {
-    setWarnings("LOW_BODYFAT");
-  } else if (minimumFoodIntake >= maintenanceCalorieIntake) {
-    setWarnings("HIGH_CARBS");
-  }
-
   const nonEssentialFatMass = ((bodyfat - essentialBodyFat) * weight) / 100;
 
   let maxFatInGrams = calculateFatIntakeInGrams(
@@ -295,11 +378,6 @@ const App = () => {
     longTermProteinIntake,
     netCarbs
   );
-
-  if (maxFatInGrams < 0) {
-    maxFatInGrams = 0;
-    setWarnings("HIGH_CARBS");
-  }
 
   let minimumFoodIntake =
     maintenanceCalorieIntake - 69.2 * Math.max(0, nonEssentialFatMass);
@@ -329,40 +407,10 @@ const App = () => {
     netCarbs
   );
 
-  if (desirableFatInGrams < 0) {
-    desirableFatInGrams = 0;
-    setWarnings("HIGH_CARBS");
-  }
-
-  //   if (desirable.gramsFat < 30) {
-  //     setWarnings("LOW_FATGRAMS");
-  //   }
-  if (desirableFoodIntake < 1200) {
-    setWarnings("LOW_CALORIES");
-  }
-
   //   var calorieAdjustments =
   //     result.adjustment < 0
   //       ? -result.adjustment + "% deficit"
   //       : result.adjustment + "% surplus";
-
-  // Set warnings
-  switch (warnings) {
-    default:
-      console.log("Geen fouten -- helemaal goed");
-    case "LOW_BODYFAT":
-      console.log("Vetpercentage te laag");
-      break;
-    case "LOW_CALORIES":
-      console.log("Calorie inname te laag");
-      break;
-    case "LOW_FATGRAMS":
-      console.log("Vet inname te laag");
-      break;
-    case "HIGH_CARBS":
-      console.log("Koolhydraatinname te hoog");
-      break;
-  }
 
   const handleGenderChange = (event) => {
     setGender(event.target.value);
@@ -370,57 +418,61 @@ const App = () => {
   };
 
   return (
-    <div>
-      <form>
-        <FormControl component="fieldset">
-          <FormLabel component="legend">Gender</FormLabel>
-          <RadioGroup
-            aria-label="gender"
-            name="gender1"
-            value={gender}
-            onChange={handleGenderChange}
-          >
-            <FormControlLabel
-              value="Female"
-              control={<Radio />}
-              label="Vrouw"
-            />
-            <FormControlLabel value="Male" control={<Radio />} label="Man" />
-          </RadioGroup>
-        </FormControl>
-        <TextField
-          label="Leeftijd"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-        ></TextField>
-        <TextField
-          label="gewicht"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-        ></TextField>
-        <TextField
-          label="lengte"
-          value={height}
-          onChange={(e) => setHeight(e.target.value)}
-        ></TextField>
-        <TextField
-          label="vetpercentage"
-          value={bodyfat}
-          onChange={(e) => setBodyfat(e.target.value)}
-        ></TextField>
-        <TextField
-          label="hoeveelheid koolhydraten"
-          value={netCarbs}
-          onChange={(e) => setWeight(e.target.value)}
-        ></TextField>
-      </form>
-      <h3>Resultaten</h3>
-      <Results
-        calorieAdjustment={100}
-        minimum={minimum}
-        desirable={desirable}
-        maintenance={maintenance}
-      />
+    <div className={classes.root}>
+      <div>
+        <form>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Gender</FormLabel>
+            <RadioGroup
+              aria-label="gender"
+              name="gender1"
+              value={gender}
+              onChange={handleGenderChange}
+            >
+              <FormControlLabel
+                value="Female"
+                control={<Radio />}
+                label="Vrouw"
+              />
+              <FormControlLabel value="Male" control={<Radio />} label="Man" />
+            </RadioGroup>
+          </FormControl>
+          <TextField
+            label="Leeftijd"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+          ></TextField>
+          <TextField
+            label="gewicht"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+          ></TextField>
+          <TextField
+            label="lengte"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+          ></TextField>
+          <TextField
+            label="vetpercentage"
+            value={bodyfat}
+            onChange={(e) => setBodyfat(e.target.value)}
+          ></TextField>
+          <TextField
+            label="hoeveelheid koolhydraten"
+            value={netCarbs}
+            onChange={(e) => setWeight(e.target.value)}
+          ></TextField>
+        </form>
+      </div>
+      <div>
+        <h3>Resultaten</h3>
+        <Results
+          calorieAdjustment={100}
+          minimum={minimum}
+          desirable={desirable}
+          maintenance={maintenance}
+        />
+      </div>
     </div>
   );
 };
