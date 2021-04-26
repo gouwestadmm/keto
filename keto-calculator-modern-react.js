@@ -471,6 +471,7 @@ const App = () => {
           minimum={minimum}
           desirable={desirable}
           maintenance={maintenance}
+          bmr={bmr}
         />
       </div>
     </div>
@@ -505,28 +506,28 @@ const Results = ({
   );
 };
 
-const ResultsSection = (resultaten) => {
-  const energy = resultaten.energy + " kcal";
+const ResultsSection = (results) => {
+  const energy = results.energy + " kcal";
   var macroGrams =
-    resultaten.gramsFat +
+    results.gramsFat +
     "g, " +
-    resultaten.gramsProtein +
+    results.gramsProtein +
     "g, " +
-    resultaten.gramsNetCarbs +
+    results.gramsNetCarbs +
     "g";
   var macroEnergy =
-    resultaten.energyFat +
+    results.energyFat +
     " kcal, " +
-    resultaten.energyProtein +
+    results.energyProtein +
     " kcal, " +
-    resultaten.energyNetCarbs +
+    results.energyNetCarbs +
     " kcal";
   var macroPercEnergy =
-    resultaten.percEnergyFat +
+    results.percEnergyFat +
     "%, " +
-    resultaten.percEnergyProtein +
+    results.percEnergyProtein +
     "%, " +
-    resultaten.percEnergyNetCarbs +
+    results.percEnergyNetCarbs +
     "%";
 
   return (
